@@ -21,19 +21,22 @@ public class SecurityConfig {
 
     @Bean
     public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
+        PasswordEncoder encoder = passwordEncoder();
         return new InMemoryUserDetailsManager(
-                User.withUsername("user1").password("1234").roles("USER").build(),
-                User.withUsername("user2").password("1234").roles("USER").build(),
-                User.withUsername("admin").password("1234").roles("USER","ADMIN").build()
+                User.withUsername("user1").password(passwordEncoder().encode("1234")).roles("USER").build(),
+                User.withUsername("user2").password(passwordEncoder().encode("1234")).roles("USER").build(),
+                User.withUsername("admin").password(passwordEncoder().encode("1234")).roles("USER","ADMIN").build()
         );
     }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         return http
                 .formLogin(Customizer.withDefaults())
-                .authorizeHttpRequests(ar -> ar.requestMatchers("/index/**").hasRole("USER"))
-                .authorizeHttpRequests(ar -> ar.requestMatchers("/save/**", "/delete/**").hasRole("ADMIN"))
+                .authorizeHttpRequests(ar -> ar.requestMatchers("/user/**").hasRole("USER"))
+                .authorizeHttpRequests(ar -> ar.requestMatchers("/admin/**").hasRole("ADMIN"))
+                .authorizeHttpRequests(ar -> ar.requestMatchers("/public/**").permitAll())
                 .authorizeHttpRequests(ar -> ar.anyRequest().authenticated())
+                .exceptionHandling(eh -> eh.accessDeniedPage("/notAuthorized"))
                 .build();
     }
 }
